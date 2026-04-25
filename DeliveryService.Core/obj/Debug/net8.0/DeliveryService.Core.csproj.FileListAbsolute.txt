@@ -1,0 +1,11 @@
+C:\Users\Admin\DeliveryService\DeliveryService.Core\bin\Debug\net8.0\DeliveryService.Core.deps.json
+C:\Users\Admin\DeliveryService\DeliveryService.Core\bin\Debug\net8.0\DeliveryService.Core.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Core\bin\Debug\net8.0\DeliveryService.Core.pdb
+C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\DeliveryService.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\DeliveryService.Core.AssemblyInfoInputs.cache
+C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\DeliveryService.Core.AssemblyInfo.cs
+C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\DeliveryService.Core.csproj.CoreCompileInputs.cache
+C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\DeliveryService.Core.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\refint\DeliveryService.Core.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\DeliveryService.Core.pdb
+C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\ref\DeliveryService.Core.dll

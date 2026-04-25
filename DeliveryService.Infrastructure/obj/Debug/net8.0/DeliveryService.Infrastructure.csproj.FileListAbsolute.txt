@@ -1,0 +1,17 @@
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.AssemblyInfo.cs
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\bin\Debug\net8.0\DeliveryService.Infrastructure.deps.json
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\bin\Debug\net8.0\DeliveryService.Infrastructure.runtimeconfig.json
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\bin\Debug\net8.0\DeliveryService.Infrastructure.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\bin\Debug\net8.0\DeliveryService.Infrastructure.pdb
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\bin\Debug\net8.0\DeliveryService.Core.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\bin\Debug\net8.0\DeliveryService.Core.pdb
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\Delivery.1B4147CC.Up2Date
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\refint\DeliveryService.Infrastructure.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.pdb
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.genruntimeconfig.cache
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\ref\DeliveryService.Infrastructure.dll
