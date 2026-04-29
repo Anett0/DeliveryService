@@ -124,3 +124,4 @@ C:\Users\Admin\DeliveryService\DeliveryService.Tests.Unit\obj\Debug\net8.0\refin
 C:\Users\Admin\DeliveryService\DeliveryService.Tests.Unit\obj\Debug\net8.0\DeliveryService.Tests.Unit.pdb
 C:\Users\Admin\DeliveryService\DeliveryService.Tests.Unit\obj\Debug\net8.0\DeliveryService.Tests.Unit.genruntimeconfig.cache
 C:\Users\Admin\DeliveryService\DeliveryService.Tests.Unit\obj\Debug\net8.0\ref\DeliveryService.Tests.Unit.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Tests.Unit\obj\Debug\net8.0\DeliveryService.Tests.Unit.sourcelink.json

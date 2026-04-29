@@ -15,3 +15,4 @@ C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\r
 C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.pdb
 C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.genruntimeconfig.cache
 C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\ref\DeliveryService.Infrastructure.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Infrastructure\obj\Debug\net8.0\DeliveryService.Infrastructure.sourcelink.json

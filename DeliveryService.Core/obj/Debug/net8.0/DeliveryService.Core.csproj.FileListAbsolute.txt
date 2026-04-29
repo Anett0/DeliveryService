@@ -9,3 +9,4 @@ C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\DeliverySer
 C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\refint\DeliveryService.Core.dll
 C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\DeliveryService.Core.pdb
 C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\ref\DeliveryService.Core.dll
+C:\Users\Admin\DeliveryService\DeliveryService.Core\obj\Debug\net8.0\DeliveryService.Core.sourcelink.json
