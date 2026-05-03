@@ -82,7 +82,7 @@ public class PackagesController : ControllerBase
     {
         var package = await _packageRepository.GetByTrackingCodeAsync(trackingCode);
         if (package == null)
-            return NotFound($"Package with tracking code {trackingCode} not found.");
+            return NotFound(new { message = $"Package with tracking code {trackingCode} not found." });
         return Ok(MapToResponse(package));
     }
 
@@ -91,7 +91,7 @@ public class PackagesController : ControllerBase
     {
         var package = await _packageRepository.GetByTrackingCodeAsync(trackingCode);
         if (package == null)
-            return NotFound($"Package with tracking code {trackingCode} not found.");
+            return NotFound(new { message = $"Package with tracking code {trackingCode} not found." });
 
         var updates = await _packageRepository.GetUpdatesForPackageAsync(package.Id);
         return Ok(updates.Select(u => new DeliveryUpdateDto
@@ -109,7 +109,7 @@ public class PackagesController : ControllerBase
     {
         var package = await _packageRepository.GetByIdAsync(id);
         if (package == null)
-            return NotFound($"Package with id {id} not found.");
+            return NotFound(new { message = $"Package with id {id} not found." });
 
         if (package.Status == PackageStatus.Delivered || package.Status == PackageStatus.Returned)
             return BadRequest("Cannot update delivered or returned package.");
@@ -139,7 +139,7 @@ public class PackagesController : ControllerBase
     public async Task<IActionResult> MarkAsDelivered(Guid id)
     {
         var package = await _packageRepository.GetByIdAsync(id);
-        if (package == null) return NotFound();
+        if (package == null) return NotFound(new { message = $"Package with id {id} not found." });
         if (package.Status != PackageStatus.OutForDelivery)
             return BadRequest("Package must be OutForDelivery before delivering.");
 

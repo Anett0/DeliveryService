@@ -11,7 +11,45 @@ public static class DataSeeder
     public static async Task SeedAsync(AppDbContext context, int senderCount = 200, int packagesPerSender = 50)
     {
         if (await context.Senders.AnyAsync())
+        {
+            // Add test package
+            var existing = await context.Packages.FirstOrDefaultAsync(p => p.TrackingCode == "TEST123");
+            if (existing != null)
+            {
+                context.Packages.Remove(existing);
+                var existingUpdates = context.DeliveryUpdates.Where(u => u.PackageId == existing.Id);
+                context.DeliveryUpdates.RemoveRange(existingUpdates);
+                await context.SaveChangesAsync();
+            }
+            var testSender2 = await context.Senders.FirstAsync();
+            var testPackage2 = new Package
+            {
+                Id = Guid.Parse("12345678-1234-1234-1234-123456789012"),
+                SenderId = testSender2.Id,
+                RecipientName = "Test Recipient",
+                RecipientAddress = "Test Address",
+                RecipientPhone = "123-456-7890",
+                Weight = 1.0m,
+                Dimensions = "10x10x10",
+                Status = PackageStatus.Created,
+                TrackingCode = "TEST123",
+                CreatedAt = DateTime.UtcNow
+            };
+            await context.Packages.AddAsync(testPackage2);
+            var testUpdate2 = new DeliveryUpdate
+            {
+                Id = Guid.NewGuid(),
+                PackageId = testPackage2.Id,
+                Status = PackageStatus.Created,
+                Location = "Warehouse",
+                Notes = "Test package created",
+                Timestamp = DateTime.UtcNow,
+                UpdatedBy = "system"
+            };
+            await context.DeliveryUpdates.AddAsync(testUpdate2);
+            await context.SaveChangesAsync();
             return;
+        }
 
         var senderFaker = new Faker<Sender>()
             .RuleFor(s => s.Id, _ => Guid.NewGuid())
@@ -92,15 +130,8 @@ public static class DataSeeder
             }
         }
 
-        if (packages.Any())
-        {
-            await context.Packages.AddRangeAsync(packages);
-            await context.DeliveryUpdates.AddRangeAsync(updates);
-            await context.SaveChangesAsync();
-        }
-
         // Add a test package with known tracking code for k6 tests
-        var testSender = senders.First();
+        var testSender = await context.Senders.FirstAsync();
         var testPackageId = Guid.Parse("12345678-1234-1234-1234-123456789012");
         var testPackage = new Package
         {
