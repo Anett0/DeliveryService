@@ -1,0 +1,102 @@
+name: K6 Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'DeliveryService.K6/**'
+      - 'DeliveryService.API/**'
+      - 'DeliveryService.Core/**'
+      - 'DeliveryService.Infrastructure/**'
+      - '.github/workflows/k6-tests.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'DeliveryService.K6/**'
+      - 'DeliveryService.API/**'
+      - 'DeliveryService.Core/**'
+      - 'DeliveryService.Infrastructure/**'
+      - '.github/workflows/k6-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  k6-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: deliverydb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d deliverydb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=deliverydb;Username=postgres;Password=postgres
+      TRACKING_CODE: TEST123
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef --version 8.*
+
+      - name: Apply migrations
+        run: dotnet ef database update --project DeliveryService.Infrastructure --startup-project DeliveryService.API
+
+      - name: Start API
+        run: dotnet run --project DeliveryService.API --configuration Release --no-build &
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+
+      - name: Wait for API to start
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:5166/api/packages/TEST123; then
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run K6 Smoke Test
+        uses: grafana/k6-action@v0.3.0
+        with:
+          filename: DeliveryService.K6/smoke_test.js
+        env:
+          BASE_URL: http://localhost:5166
+          TRACKING_CODE: TEST123
+
+      - name: Run K6 Load Test
+        uses: grafana/k6-action@v0.3.0
+        with:
+          filename: DeliveryService.K6/load_test.js
+        env:
+          BASE_URL: http://localhost:5166
+          TRACKING_CODE: TEST123
+
+      - name: Run K6 Stress Test
+        uses: grafana/k6-action@v0.3.0
+        with:
+          filename: DeliveryService.K6/stress_test.js
+        env:
+          BASE_URL: http://localhost:5166
+          TRACKING_CODE: TEST123

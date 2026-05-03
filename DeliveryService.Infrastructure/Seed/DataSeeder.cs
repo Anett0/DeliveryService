@@ -98,6 +98,36 @@ public static class DataSeeder
             await context.DeliveryUpdates.AddRangeAsync(updates);
             await context.SaveChangesAsync();
         }
+
+        // Add a test package with known tracking code for k6 tests
+        var testSender = senders.First();
+        var testPackageId = Guid.Parse("12345678-1234-1234-1234-123456789012");
+        var testPackage = new Package
+        {
+            Id = testPackageId,
+            SenderId = testSender.Id,
+            RecipientName = "Test Recipient",
+            RecipientAddress = "Test Address",
+            RecipientPhone = "123-456-7890",
+            Weight = 1.0m,
+            Dimensions = "10x10x10",
+            Status = PackageStatus.Created,
+            TrackingCode = "TEST123",
+            CreatedAt = DateTime.UtcNow
+        };
+        await context.Packages.AddAsync(testPackage);
+        var testUpdate = new DeliveryUpdate
+        {
+            Id = Guid.NewGuid(),
+            PackageId = testPackage.Id,
+            Status = PackageStatus.Created,
+            Location = "Warehouse",
+            Notes = "Test package created",
+            Timestamp = DateTime.UtcNow,
+            UpdatedBy = "system"
+        };
+        await context.DeliveryUpdates.AddAsync(testUpdate);
+        await context.SaveChangesAsync();
     }
 
     private static IReadOnlyList<PackageStatus> BuildStatusHistory(PackageStatus finalStatus, Faker faker)
