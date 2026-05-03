@@ -41,6 +41,7 @@ jobs:
     env:
       ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=deliverydb;Username=postgres;Password=postgres
       TRACKING_CODE: TEST123
+      PACKAGE_IDS: 12345678-1234-1234-1234-123456789012
 
     steps:
       - name: Checkout
@@ -57,6 +58,15 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      - name: Install k6
+        run: |
+          sudo apt update
+          sudo apt install -y curl
+          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo 'deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main' | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt update
+          sudo apt install -y k6
+
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef --version 8.*
 
@@ -67,6 +77,7 @@ jobs:
         run: dotnet run --project DeliveryService.API --configuration Release --no-build &
         env:
           ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: http://0.0.0.0:5166
 
       - name: Wait for API to start
         run: |
@@ -78,25 +89,19 @@ jobs:
           done
 
       - name: Run K6 Smoke Test
-        uses: grafana/k6-action@v0.3.0
-        with:
-          filename: DeliveryService.K6/smoke_test.js
+        run: k6 run DeliveryService.K6/smoke_test.js
         env:
           BASE_URL: http://localhost:5166
           TRACKING_CODE: TEST123
 
       - name: Run K6 Load Test
-        uses: grafana/k6-action@v0.3.0
-        with:
-          filename: DeliveryService.K6/load_test.js
+        run: k6 run DeliveryService.K6/load_test.js
         env:
           BASE_URL: http://localhost:5166
           TRACKING_CODE: TEST123
 
       - name: Run K6 Stress Test
-        uses: grafana/k6-action@v0.3.0
-        with:
-          filename: DeliveryService.K6/stress_test.js
+        run: k6 run DeliveryService.K6/stress_test.js
         env:
           BASE_URL: http://localhost:5166
-          TRACKING_CODE: TEST123
+          PACKAGE_IDS: 12345678-1234-1234-1234-123456789012
