@@ -1,7 +1,7 @@
+using Bogus;
 using DeliveryService.Core.Entities;
 using DeliveryService.Core.Enums;
 using DeliveryService.Infrastructure.Data;
-using Bogus;
 using Microsoft.EntityFrameworkCore;
 
 namespace DeliveryService.Infrastructure.Seed;
@@ -13,9 +13,8 @@ public static class DataSeeder
         if (await context.Senders.AnyAsync())
             return;
 
-        // 1. Відправники
         var senderFaker = new Faker<Sender>()
-            .RuleFor(s => s.Id, f => Guid.NewGuid())
+            .RuleFor(s => s.Id, _ => Guid.NewGuid())
             .RuleFor(s => s.Name, f => f.Person.FullName)
             .RuleFor(s => s.Email, f => f.Person.Email)
             .RuleFor(s => s.Phone, f => f.Person.Phone)
@@ -31,57 +30,57 @@ public static class DataSeeder
 
         foreach (var sender in senders)
         {
-            for (int i = 0; i < packagesPerSender; i++)
+            for (var i = 0; i < packagesPerSender; i++)
             {
-                var f = new Faker();
+                var faker = new Faker();
 
                 string trackingCode;
                 do
                 {
-                    trackingCode = GenerateTrackingCode(f);
+                    trackingCode = GenerateTrackingCode(faker);
                 } while (!usedTrackingCodes.Add(trackingCode));
 
-                var status = f.PickRandom<PackageStatus>();
-
+                var status = faker.PickRandom<PackageStatus>();
                 var package = new Package
                 {
                     Id = Guid.NewGuid(),
                     SenderId = sender.Id,
-                    RecipientName = f.Person.FullName,
-                    RecipientAddress = f.Address.FullAddress(),
-                    RecipientPhone = f.Person.Phone,
-                    Weight = Math.Round(f.Random.Decimal(0.1m, 50m), 2),
-                    Dimensions = $"{f.Random.Int(10, 50)}x{f.Random.Int(10, 50)}x{f.Random.Int(5, 30)}",
+                    RecipientName = faker.Person.FullName,
+                    RecipientAddress = faker.Address.FullAddress(),
+                    RecipientPhone = faker.Person.Phone,
+                    Weight = Math.Round(faker.Random.Decimal(0.1m, 50m), 2),
+                    Dimensions = $"{faker.Random.Int(10, 50)}x{faker.Random.Int(10, 50)}x{faker.Random.Int(5, 30)}",
                     Status = status,
                     TrackingCode = trackingCode,
-                    CreatedAt = DateTime.SpecifyKind(f.Date.Past(1), DateTimeKind.Utc)
+                    CreatedAt = DateTime.SpecifyKind(faker.Date.Past(1), DateTimeKind.Utc)
                 };
+
                 packages.Add(package);
 
-                var statusSequence = Enum.GetValues<PackageStatus>()
-                    .Where(s => s <= status)
-                    .ToList();
-
                 var timestamp = package.CreatedAt;
-                foreach (var st in statusSequence)
+                foreach (var updateStatus in BuildStatusHistory(status, faker))
                 {
-                    timestamp = timestamp.AddMinutes(f.Random.Int(1, 4320));
-                    // явно перетворюємо в UTC, якщо раптом не UTC
-                    if (timestamp.Kind != DateTimeKind.Utc)
-                        timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
+                    timestamp = DateTime.SpecifyKind(
+                        timestamp.AddMinutes(faker.Random.Int(1, 4320)),
+                        DateTimeKind.Utc);
+
                     updates.Add(new DeliveryUpdate
                     {
                         Id = Guid.NewGuid(),
                         PackageId = package.Id,
-                        Status = st,
-                        Location = f.Address.City(),
-                        Notes = st == PackageStatus.Delivered ? "Delivered successfully" : f.Lorem.Sentence(),
+                        Status = updateStatus,
+                        Location = faker.Address.City(),
+                        Notes = updateStatus switch
+                        {
+                            PackageStatus.Delivered => "Delivered successfully",
+                            PackageStatus.Returned => "Returned to sender",
+                            _ => faker.Lorem.Sentence()
+                        },
                         Timestamp = timestamp,
-                        UpdatedBy = f.PickRandom("system", "warehouse", "courier_" + f.Random.Int(1, 50))
+                        UpdatedBy = faker.PickRandom("system", "warehouse", "courier_" + faker.Random.Int(1, 50))
                     });
                 }
 
-                // Зберігаємо пакунками по 500 записів, щоб зменшити навантаження на пам'ять
                 if (packages.Count >= 500)
                 {
                     await context.Packages.AddRangeAsync(packages);
@@ -99,6 +98,32 @@ public static class DataSeeder
             await context.DeliveryUpdates.AddRangeAsync(updates);
             await context.SaveChangesAsync();
         }
+    }
+
+    private static IReadOnlyList<PackageStatus> BuildStatusHistory(PackageStatus finalStatus, Faker faker)
+    {
+        var deliveryFlow = new[]
+        {
+            PackageStatus.Created,
+            PackageStatus.PickedUp,
+            PackageStatus.InTransit,
+            PackageStatus.OutForDelivery,
+            PackageStatus.Delivered
+        };
+
+        if (finalStatus != PackageStatus.Returned)
+            return deliveryFlow.TakeWhile(status => status <= finalStatus).ToList();
+
+        var returnFrom = faker.PickRandom(
+            PackageStatus.Created,
+            PackageStatus.PickedUp,
+            PackageStatus.InTransit,
+            PackageStatus.OutForDelivery);
+
+        return deliveryFlow
+            .TakeWhile(status => status <= returnFrom)
+            .Append(PackageStatus.Returned)
+            .ToList();
     }
 
     private static string GenerateTrackingCode(Faker faker)

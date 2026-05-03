@@ -1,10 +1,11 @@
+using DeliveryService.Core.Services;
 using Xunit;
 
 namespace DeliveryService.Tests.Unit;
 
 public class WeightValidatorTests
 {
-    private bool IsValidWeight(decimal weight) => weight > 0 && weight <= 50;
+    private readonly PackageWeightValidator _validator = new();
 
     [Theory]
     [InlineData(0.1, true)]
@@ -15,6 +16,6 @@ public class WeightValidatorTests
     [InlineData(50.1, false)]
     public void Weight_ShouldBeValid(decimal weight, bool expected)
     {
-        Assert.Equal(expected, IsValidWeight(weight));
+        Assert.Equal(expected, _validator.IsValid(weight));
     }
 }

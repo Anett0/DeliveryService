@@ -1,22 +1,12 @@
 using DeliveryService.Core.Enums;
+using DeliveryService.Core.Services;
 using Xunit;
 
 namespace DeliveryService.Tests.Unit;
 
 public class PackageStatusValidatorTests
 {
-    private bool IsValidTransition(PackageStatus current, PackageStatus next)
-    {
-        return next switch
-        {
-            PackageStatus.PickedUp => current == PackageStatus.Created,
-            PackageStatus.InTransit => current == PackageStatus.PickedUp,
-            PackageStatus.OutForDelivery => current == PackageStatus.InTransit,
-            PackageStatus.Delivered => current == PackageStatus.OutForDelivery,
-            PackageStatus.Returned => current != PackageStatus.Delivered,
-            _ => false
-        };
-    }
+    private readonly PackageStatusTransitionValidator _validator = new();
 
     [Theory]
     [InlineData(PackageStatus.Created, PackageStatus.PickedUp, true)]
@@ -24,10 +14,16 @@ public class PackageStatusValidatorTests
     [InlineData(PackageStatus.PickedUp, PackageStatus.InTransit, true)]
     [InlineData(PackageStatus.InTransit, PackageStatus.OutForDelivery, true)]
     [InlineData(PackageStatus.OutForDelivery, PackageStatus.Delivered, true)]
+    [InlineData(PackageStatus.Created, PackageStatus.Returned, true)]
+    [InlineData(PackageStatus.PickedUp, PackageStatus.Returned, true)]
+    [InlineData(PackageStatus.InTransit, PackageStatus.Returned, true)]
+    [InlineData(PackageStatus.OutForDelivery, PackageStatus.Returned, true)]
     [InlineData(PackageStatus.Delivered, PackageStatus.Returned, false)]
+    [InlineData(PackageStatus.Returned, PackageStatus.PickedUp, false)]
+    [InlineData(PackageStatus.Returned, PackageStatus.Returned, false)]
     [InlineData(PackageStatus.Delivered, PackageStatus.Created, false)]
     public void Transition_ShouldBeValid(PackageStatus current, PackageStatus next, bool expected)
     {
-        Assert.Equal(expected, IsValidTransition(current, next));
+        Assert.Equal(expected, _validator.CanTransition(current, next));
     }
 }

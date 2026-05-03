@@ -13,21 +13,30 @@ public class PackagesController : ControllerBase
     private readonly IPackageRepository _packageRepository;
     private readonly ISenderRepository _senderRepository;
     private readonly ITrackingCodeGenerator _trackingCodeGenerator;
+    private readonly IPackageStatusTransitionValidator _statusTransitionValidator;
+    private readonly IPackageWeightValidator _weightValidator;
 
     public PackagesController(
         IPackageRepository packageRepository,
         ISenderRepository senderRepository,
-        ITrackingCodeGenerator trackingCodeGenerator)
+        ITrackingCodeGenerator trackingCodeGenerator,
+        IPackageStatusTransitionValidator statusTransitionValidator,
+        IPackageWeightValidator weightValidator)
     {
         _packageRepository = packageRepository;
         _senderRepository = senderRepository;
         _trackingCodeGenerator = trackingCodeGenerator;
+        _statusTransitionValidator = statusTransitionValidator;
+        _weightValidator = weightValidator;
     }
 
     [HttpPost]
     public async Task<ActionResult<PackageResponseDto>> CreatePackage(CreatePackageDto dto)
     {
-        if (dto.Weight <= 0 || dto.Weight > 50)
+        if (dto.SenderId == Guid.Empty)
+            return BadRequest("SenderId is required.");
+
+        if (!_weightValidator.IsValid(dto.Weight))
             return BadRequest("Weight must be between 0 and 50 kg.");
 
         var sender = await _senderRepository.GetByIdAsync(dto.SenderId);
@@ -105,8 +114,10 @@ public class PackagesController : ControllerBase
         if (package.Status == PackageStatus.Delivered || package.Status == PackageStatus.Returned)
             return BadRequest("Cannot update delivered or returned package.");
 
-        var newStatus = Enum.Parse<PackageStatus>(dto.Status);
-        if (!IsValidTransition(package.Status, newStatus))
+        if (!Enum.TryParse<PackageStatus>(dto.Status, ignoreCase: true, out var newStatus))
+            return BadRequest($"Invalid status '{dto.Status}'.");
+
+        if (!_statusTransitionValidator.CanTransition(package.Status, newStatus))
             return BadRequest($"Invalid status transition from {package.Status} to {newStatus}.");
 
         package.Status = newStatus;
@@ -152,8 +163,8 @@ public class PackagesController : ControllerBase
     {
         var package = await _packageRepository.GetByIdAsync(id);
         if (package == null) return NotFound();
-        if (package.Status == PackageStatus.Delivered)
-            return BadRequest("Cannot return a delivered package.");
+        if (!_statusTransitionValidator.CanTransition(package.Status, PackageStatus.Returned))
+            return BadRequest($"Invalid status transition from {package.Status} to {PackageStatus.Returned}.");
 
         package.Status = PackageStatus.Returned;
         var update = new DeliveryUpdate
@@ -173,23 +184,17 @@ public class PackagesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PackageResponseDto>>> GetByStatus([FromQuery] string? status)
     {
-        var packages = string.IsNullOrEmpty(status)
-            ? await _packageRepository.GetAllAsync()
-            : await _packageRepository.GetByStatusAsync(Enum.Parse<PackageStatus>(status));
-        return Ok(packages.Select(MapToResponse));
-    }
-
-    private bool IsValidTransition(PackageStatus current, PackageStatus next)
-    {
-        return next switch
+        if (string.IsNullOrEmpty(status))
         {
-            PackageStatus.PickedUp => current == PackageStatus.Created,
-            PackageStatus.InTransit => current == PackageStatus.PickedUp,
-            PackageStatus.OutForDelivery => current == PackageStatus.InTransit,
-            PackageStatus.Delivered => current == PackageStatus.OutForDelivery,
-            PackageStatus.Returned => current != PackageStatus.Delivered,
-            _ => false
-        };
+            var allPackages = await _packageRepository.GetAllAsync();
+            return Ok(allPackages.Select(MapToResponse));
+        }
+
+        if (!Enum.TryParse<PackageStatus>(status, ignoreCase: true, out var packageStatus))
+            return BadRequest($"Invalid status '{status}'.");
+
+        var packages = await _packageRepository.GetByStatusAsync(packageStatus);
+        return Ok(packages.Select(MapToResponse));
     }
 
     private PackageResponseDto MapToResponse(Package p) => new()

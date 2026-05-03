@@ -1,0 +1,49 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'DeliveryService.API/**'
+      - 'DeliveryService.Core/**'
+      - 'DeliveryService.Infrastructure/**'
+      - 'DeliveryService.Tests.Integration/**'
+      - '.github/workflows/integration-tests.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'DeliveryService.API/**'
+      - 'DeliveryService.Core/**'
+      - 'DeliveryService.Infrastructure/**'
+      - 'DeliveryService.Tests.Integration/**'
+      - '.github/workflows/integration-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run integration tests
+        run: dotnet test DeliveryService.Tests.Integration --configuration Release --no-build --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: TestResults
